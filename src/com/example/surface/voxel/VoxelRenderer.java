@@ -9,7 +9,6 @@ import com.example.surface.SketchView;
 import rajawali.BaseObject3D;
 import rajawali.lights.DirectionalLight;
 import rajawali.materials.DiffuseMaterial;
-import rajawali.math.Quaternion;
 import rajawali.primitives.Cube;
 import rajawali.renderer.RajawaliRenderer;
 import android.app.Activity;
@@ -25,15 +24,14 @@ public class VoxelRenderer extends RajawaliRenderer {
     private DirectionalLight mLight;
     private DiffuseMaterial mMaterial;
     private BaseObject3D mObject;
+    private BaseObject3D mObject2;
     private Cylinder mCylinder;
     private Cube[][] mBars;
-    private Quaternion mOrientation;
-    private Quaternion mFling;
+    private float mFling;
 
     public VoxelRenderer(Context context) {
         super(context);
         setFrameRate(30);
-        initOrientation();
     }
 
     @Override
@@ -48,29 +46,32 @@ public class VoxelRenderer extends RajawaliRenderer {
         mMaterial.setUseColor(true);
 
         mObject = new BaseObject3D();
+        mObject2 = new BaseObject3D();
+        mObject.addChild(mObject2);
 
         mCylinder = new Cylinder(1.42f, 2.0f / RESOLUTION);
         mCylinder.setZ((0.99f - RESOLUTION / 2) / RESOLUTION);
         mCylinder.setMaterial(mMaterial);
         mCylinder.setColor(CYLINDER_COLOR);
-        mObject.addChild(mCylinder);
+        mObject2.addChild(mCylinder);
 
         mBars = new Cube[RESOLUTION][RESOLUTION];
         for (int i = 0; i < RESOLUTION; i++) {
             for (int j = 0; j < RESOLUTION; j++) {
                 Cube bar = new Cube(2.0f / RESOLUTION);
-                bar.setX((float) (j * 2 - RESOLUTION + 1) / RESOLUTION);
-                bar.setY((float) (i * 2 - RESOLUTION + 1) / RESOLUTION);
+                bar.setX((float) (i * 2 - RESOLUTION + 1) / RESOLUTION);
+                bar.setY((float) ((RESOLUTION - j - 1) * 2 - RESOLUTION + 1) / RESOLUTION);
                 bar.setZ((1.0f - RESOLUTION / 2) / RESOLUTION);
                 bar.setMaterial(mMaterial);
                 bar.setColor(OBJECT_COLOR);
                 mBars[i][j] = bar;
-                mObject.addChild(bar);
+                mObject2.addChild(bar);
             }
         }
 
         mObject.addLight(mLight);
         addChild(mObject);
+        initOrientation();
 
         mCamera.setZ(3.6f);
     }
@@ -89,22 +90,27 @@ public class VoxelRenderer extends RajawaliRenderer {
             }
         }
 
-        if (mFling != null) {
-            multiplyOrientation(mFling);
-        }
-        mObject.setOrientation(mOrientation);
+        addRotZ(mFling);
         super.onDrawFrame(glUnused);
     }
 
     public void initOrientation() {
-        mOrientation = new Quaternion();
+        mObject.setRotX(75);
+        mObject2.setRotZ(0);
+        mFling = 0;
     }
 
-    public void multiplyOrientation(Quaternion quaternion) {
-        mOrientation.multiply(quaternion);
+    public void addRotX(float delta) {
+        float rotX = mObject.getRotX() + delta;
+        mObject.setRotX(Math.max(Math.min(rotX, 100), 0));
     }
 
-    public void setFling(Quaternion fling) {
+    public void addRotZ(float delta) {
+        float rotZ = mObject2.getRotZ() + delta;
+        mObject2.setRotZ(rotZ % 360);
+    }
+
+    public void setFling(float fling) {
         mFling = fling;
     }
 }
