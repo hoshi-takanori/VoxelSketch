@@ -180,4 +180,8 @@ public class SketchView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void surfaceDestroyed(SurfaceHolder holder) {
     }
+
+    public int[][] getWorldColor() {
+        return mWorldColor;
+    }
 }
