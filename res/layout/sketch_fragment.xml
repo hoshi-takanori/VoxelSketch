@@ -1,0 +1,62 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_2d"
+    android:orientation="horizontal"
+    android:paddingLeft="15dp"
+    android:paddingTop="15dp"
+    tools:context=".MainActivity" >
+
+    <FrameLayout
+        android:layout_width="610dp"
+        android:layout_height="610dp"
+        android:background="@drawable/background_paper" >
+
+        <com.example.surface.SketchView
+            android:id="@+id/sketch_view"
+            android:layout_width="600dp"
+            android:layout_height="600dp" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/mode_draw_btn"
+            android:layout_width="157dp"
+            android:layout_height="158dp"
+            android:background="@drawable/b_draw_on" />
+
+        <Button
+            android:id="@+id/mode_delete_btn"
+            android:layout_width="157dp"
+            android:layout_height="158dp"
+            android:background="@drawable/btn_delete" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:gravity="right"
+            android:orientation="vertical" >
+
+            <Button
+                android:id="@+id/new_btn"
+                android:layout_width="164dp"
+                android:layout_height="112dp"
+                android:background="@drawable/btn_new" />
+
+            <Button
+                android:id="@+id/gallery_btn"
+                android:layout_width="164dp"
+                android:layout_height="112dp"
+                android:background="@drawable/btn_gallery" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
