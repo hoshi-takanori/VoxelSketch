@@ -39,6 +39,10 @@ public class SketchFragment extends Fragment {
         mDeleteBtn = (Button)layout.findViewById(R.id.mode_delete_btn);
         mDrawBtn.setOnClickListener(mClick);
         mDeleteBtn.setOnClickListener(mClick);
+        View btn = layout.findViewById(R.id.new_btn);
+        btn.setOnClickListener(mClick);
+        btn = layout.findViewById(R.id.gallery_btn);
+        btn.setOnClickListener(mClick);
         mSketchView = (SketchView)layout.findViewById(R.id.sketch_view);
         return layout;
     }
