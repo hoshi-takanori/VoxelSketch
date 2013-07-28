@@ -24,6 +24,8 @@ public class VoxelRenderer extends RajawaliRenderer {
     public static final int CYLINDER_COLOR = 0xff93d1cf;
     public static final int PLANE_COLOR = 0xffe6e6e6;
     public static final int OBJECT_COLOR = 0xfff4f4f4;
+    public static final int OBJECT_UP_COLOR = 0xffffd1ff;
+    public static final int OBJECT_DOWN_COLOR = 0xffa6ffa6;
 
     private ALight mLight;
     private AMaterial mMaterial;
@@ -31,7 +33,7 @@ public class VoxelRenderer extends RajawaliRenderer {
     private BaseObject3D mObject2;
     private Cylinder mCylinder;
     private Plane mPlane;
-    private Cube[][] mBars;
+    private AnimatedBar[][] mBars;
     private float mFling;
 
     public VoxelRenderer(Context context) {
@@ -66,17 +68,18 @@ public class VoxelRenderer extends RajawaliRenderer {
         mPlane.setColor(PLANE_COLOR);
         mObject2.addChild(mPlane);
 
-        mBars = new Cube[RESOLUTION][RESOLUTION];
+        mBars = new AnimatedBar[RESOLUTION][RESOLUTION];
         for (int i = 0; i < RESOLUTION; i++) {
             for (int j = 0; j < RESOLUTION; j++) {
                 Cube bar = new Cube(2.0f / RESOLUTION);
                 bar.setX((float) (i * 2 - RESOLUTION + 1) / RESOLUTION);
                 bar.setY((float) ((RESOLUTION - j - 1) * 2 - RESOLUTION + 1) / RESOLUTION);
                 bar.setZ((1.0f - RESOLUTION / 2) / RESOLUTION);
+                bar.setZ((float) (1 - RESOLUTION / 2) / RESOLUTION);
                 bar.setMaterial(mMaterial);
                 bar.setColor(OBJECT_COLOR);
-                mBars[i][j] = bar;
                 mObject2.addChild(bar);
+                mBars[i][j] = new AnimatedBar(bar);
             }
         }
 
@@ -94,9 +97,7 @@ public class VoxelRenderer extends RajawaliRenderer {
             int[][] data = sketchView.getWorldColor();
             for (int i = 0; i < RESOLUTION; i++) {
                 for (int j = 0; j < RESOLUTION; j++) {
-                    int z = (data[i][j] + 1) / Obj.Z;
-                    mBars[i][j].setZ((float) (z + 1 - RESOLUTION / 2) / RESOLUTION);
-                    mBars[i][j].setScaleZ(z + 1);
+                    mBars[i][j].animate((data[i][j] + 1) / Obj.Z);
                 }
             }
         }
