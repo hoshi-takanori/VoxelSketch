@@ -1,11 +1,18 @@
 package com.example.surface;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -14,7 +21,10 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HTTP;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import android.app.Activity;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -23,8 +33,12 @@ import android.graphics.Paint;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Vibrator;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -82,11 +96,93 @@ public class SketchView extends SurfaceView implements SurfaceHolder.Callback {
         mWorldColor = new int[lx][ly];
     }
     
-    public final void save() {
-        Exporter.obj(mContext, mWorldColor);
+    public final String save() {
+        return Exporter.obj(mContext, mWorldColor);
     }
     
-    public final void png() {
+    public final void clear() {
+        int lx = mWorldColor.length;
+        int ly = mWorldColor[0].length;
+        mWorldColor = new int[lx][ly];
+        draw();
+    }
+    
+    private class CadData {
+        public Drawable img;
+        public String cad;
+    }
+    public final void loadCads() {
+        AsyncTask<String, String, ArrayList<CadData>> task = new AsyncTask<String, String, ArrayList<CadData>>() {
+            private ArrayList<Drawable> list;
+
+            @Override
+            protected ArrayList<CadData> doInBackground(String... params) {
+                String raw="";
+                try {
+                    String json = loadContent("http://sketchvoxel.appspot.com/list");
+                    JSONArray arr = new JSONArray(json);
+                    Log.i(TAG, "JSONARR: " + arr);
+                    ArrayList<Drawable> list = new ArrayList<Drawable>();
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject j = arr.getJSONObject(i);
+                        String url0 = j.getString("img");
+                        URL url = new URL(url0);
+                        InputStream istream = url.openStream();
+                        Drawable d = Drawable.createFromStream(istream, "img:"+i);
+                        istream.close();
+                        CadData cad = new CadData();
+                        cad.img = d;
+                        cad.cad = j.getString("cad");
+                    }
+                    //loadCad(raw);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            
+            @Override
+            protected void onPostExecute(ArrayList<CadData> list) {
+                int[] ids = {R.id.thumb0, R.id.thumb1, R.id.thumb2, R.id.thumb3};
+                for (int i = 0; i < ids.length; i++) {
+                    
+                }
+            }
+            
+        };
+        task.execute("");
+    }
+    
+    private final String ROW = "=";
+    private final String COLUMN = ",";
+    private final void loadCad(String raw) {
+        boolean init = false;
+        String[] rows = raw.split(ROW);
+        for (int i = 0; i < rows.length; i++) {
+            String[] columns = rows[i].split(COLUMN);
+            if (!init) {
+                mWorldColor = new int[rows.length][columns.length];
+                init = true;
+            }
+            for (int j = 0; j < columns.length; j++) {
+                mWorldColor[i][j] = Integer.valueOf(columns[j]);
+            }
+        }
+    }
+    
+    private final String cad() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < mWorldColor.length; i++) {
+            for (int j = 0; j < mWorldColor[i].length; j++) {
+                sb.append(mWorldColor[i][j]).append(COLUMN);
+            }
+            sb.append(ROW);
+        }
+        sb.delete(sb.length()-2, sb.length());//the end must be ",=" 
+        return sb.toString();
+    }
+    
+    public final void store() {
         // Bitmapの作成
         Bitmap bitmap = Bitmap.createBitmap(1200, 1200, Bitmap.Config.ARGB_4444);
          
@@ -116,22 +212,58 @@ public class SketchView extends SurfaceView implements SurfaceHolder.Callback {
         try {
             String path = mContext.getFilesDir().getCanonicalPath() + "/" + filename;
             File file = new File(path);
-            post(file);
+            String cad = cad();
+            String obj = save();
+            post(file, cad, obj);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     
-    public void post(final File file) throws ClientProtocolException, IOException {
-        HttpPost request = new HttpPost("http://www.test.com");
-        MultipartEntity entity = new MultipartEntity();
-        //テキストの送信
-        entity.addPart("name", new StringBody("値value",Charset.forName(HTTP.UTF_8)));
-        //ファイルの送信
-        entity.addPart("file", new FileBody(file,"application/octet-stream"));
-        request.setEntity(entity);
-        HttpClient client = new DefaultHttpClient();
-        client.execute(request);
+    private final String loadContent(String url) throws IOException {
+        URL url0 = new URL(url);
+        BufferedReader in = new BufferedReader(new InputStreamReader(url0.openStream()));
+        StringBuilder sb = new StringBuilder();
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            sb.append(inputLine);
+        }
+        in.close();
+        return sb.toString();
+    }
+    
+    public void post(final File file, final String cad, final String obj) throws ClientProtocolException, IOException {
+        AsyncTask<String, String, String> task = new AsyncTask<String, String, String>(){
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    String content = loadContent("http://sketchvoxel.appspot.com/store");
+                    JSONObject json = new JSONObject(content);
+                    String postUrl = json.getString("url");
+                    String code = json.getString("code");
+                    
+                    Log.i(TAG, "code: " + code + ", url: " + postUrl);
+                    //HttpPost request = new HttpPost("http://sketchvoxel.appspot.com/store");
+                    HttpPost request = new HttpPost(postUrl);
+                    MultipartEntity entity = new MultipartEntity();
+                    //テキストの送信
+                    entity.addPart("cad", new StringBody(cad,Charset.forName(HTTP.UTF_8)));
+                    entity.addPart("obj", new StringBody(obj,Charset.forName(HTTP.UTF_8)));
+                    //ファイルの送信
+                    entity.addPart("img", new FileBody(file,"application/octet-stream"));
+                    request.setEntity(entity);
+                    HttpClient client = new DefaultHttpClient();
+                    HttpResponse res = client.execute(request);
+                    res.getEntity();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+        
+        task.execute("","","");
+
     }
     
     public void surfaceCreated(SurfaceHolder holder) {

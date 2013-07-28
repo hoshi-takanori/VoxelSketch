@@ -14,7 +14,7 @@ import static com.example.surface.MainActivity.TAG;
 
 public class Exporter {
     
-    public final static void obj(Context act, int[][] map) {
+    public final static String obj(Context act, int[][] map) {
         int lenX = map.length;
         int lenY = map[0].length;
         int lenZ = 256 / Obj.Z;
@@ -70,6 +70,7 @@ public class Exporter {
         //File file = new File(act.getExternalFilesDir(null), filename);
         //File file = new File(path, filename);
         //file.getParentFile().mkdir();
+        StringBuilder objStr = new StringBuilder();
         FileOutputStream fos;
         try {
             fos = act.openFileOutput("tmp.obj", Activity.MODE_WORLD_READABLE);
@@ -80,13 +81,14 @@ public class Exporter {
             String str = Obj.head(filename);
             bw.write(str);
             bw.flush();
+            objStr.append(str);
             //Log.i(TAG, str);
             for (int number = 0; number < list.size(); number++) {
                 Obj o = list.get(number);
                 str = o.dump(number);
                 bw.write(str);
                 bw.flush();
-                //Log.i(TAG, str);
+                objStr.append(str);
             }
             
             bw.close();
@@ -95,5 +97,6 @@ public class Exporter {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return objStr.toString();
     }
 }

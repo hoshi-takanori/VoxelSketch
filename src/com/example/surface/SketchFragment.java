@@ -10,6 +10,7 @@ import android.widget.Button;
 
 public class SketchFragment extends Fragment {
     private SketchView mSketchView;
+        private View mGallery;
     private OnClickListener mClick = new OnClickListener() {
         
         @Override
@@ -19,19 +20,35 @@ public class SketchFragment extends Fragment {
                 mDrawBtn.setBackgroundResource(R.drawable.b_draw_on);
                 mDeleteBtn.setBackgroundResource(R.drawable.btn_delete);
                 mSketchView.modePen();
+                if (mGallery.getVisibility() != View.GONE) {
+                    mGallery.setVisibility(View.GONE);
+                }
             } else if (id == R.id.mode_delete_btn) {
                 mDrawBtn.setBackgroundResource(R.drawable.btn_draw);
                 mDeleteBtn.setBackgroundResource(R.drawable.b_delete_on);
                 mSketchView.modeEraser();
+                if (mGallery.getVisibility() != View.GONE) {
+                    mGallery.setVisibility(View.GONE);
+                }
             } else if (id == R.id.new_btn) {
                 //mSketchView.save();
-                mSketchView.png();
+                mSketchView.store();
+                mSketchView.clear();
+                if (mGallery.getVisibility() != View.GONE) {
+                    mGallery.setVisibility(View.GONE);
+                }
+            } else if (id == R.id.gallery_btn) {
+                //mSketchView.loadCads();
+                if (mGallery.getVisibility() == View.GONE) {
+                    mGallery.setVisibility(View.VISIBLE);
+                } else {
+                    mGallery.setVisibility(View.GONE);
+                }
             }
         }
     };
     private Button mDrawBtn;
     private Button mDeleteBtn;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
@@ -45,6 +62,7 @@ public class SketchFragment extends Fragment {
         btn = layout.findViewById(R.id.gallery_btn);
         btn.setOnClickListener(mClick);
         mSketchView = (SketchView)layout.findViewById(R.id.sketch_view);
+        mGallery = layout.findViewById(R.id.gallery_view);
         return layout;
     }
 }
