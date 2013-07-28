@@ -24,7 +24,8 @@ public class SketchFragment extends Fragment {
                 mDeleteBtn.setBackgroundResource(R.drawable.b_delete_on);
                 mSketchView.modeEraser();
             } else if (id == R.id.new_btn) {
-                mSketchView.save();
+                //mSketchView.save();
+                mSketchView.png();
             }
         }
     };

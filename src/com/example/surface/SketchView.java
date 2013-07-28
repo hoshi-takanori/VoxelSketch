@@ -86,6 +86,42 @@ public class SketchView extends SurfaceView implements SurfaceHolder.Callback {
         Exporter.obj(mContext, mWorldColor);
     }
     
+    public final void png() {
+        // Bitmapの作成
+        Bitmap bitmap = Bitmap.createBitmap(1200, 1200, Bitmap.Config.ARGB_4444);
+         
+        // Canvasの作成:描画先のBitmapを与える
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(Color.WHITE);
+         
+        for (int ix = 0; ix < mWorldColor.length; ix++) {
+            for (int iy = 0; iy < mWorldColor[ix].length; iy++) {
+                int alpha = mWorldColor[ix][iy];
+                if (alpha == 0) continue;
+                mPaint.setColor(Color.argb(alpha, 0, 0, 0));
+                int x0 = ix * mUnitX;
+                int y0 = iy * mUnitY;
+                canvas.drawRect(x0, y0, x0+mLengthX, y0+mLengthY, mPaint);
+            }
+        }
+        
+        String filename = "tmp.png"; 
+        try {
+            FileOutputStream fo = mContext.openFileOutput(filename, Activity.MODE_WORLD_READABLE);
+            bitmap.compress(CompressFormat.PNG, 100, fo);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        try {
+            String path = mContext.getFilesDir().getCanonicalPath() + "/" + filename;
+            File file = new File(path);
+            post(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
     public void post(final File file) throws ClientProtocolException, IOException {
         HttpPost request = new HttpPost("http://www.test.com");
         MultipartEntity entity = new MultipartEntity();
