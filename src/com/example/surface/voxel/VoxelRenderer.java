@@ -7,9 +7,12 @@ import com.example.surface.R;
 import com.example.surface.SketchView;
 
 import rajawali.BaseObject3D;
+import rajawali.lights.ALight;
 import rajawali.lights.DirectionalLight;
+import rajawali.materials.AMaterial;
 import rajawali.materials.DiffuseMaterial;
 import rajawali.primitives.Cube;
+import rajawali.primitives.Plane;
 import rajawali.renderer.RajawaliRenderer;
 import android.app.Activity;
 import android.content.Context;
@@ -17,15 +20,17 @@ import android.content.Context;
 public class VoxelRenderer extends RajawaliRenderer {
     public static final int RESOLUTION = 16;
 
-    public static final int BACKGROUND_COLOR = 0xffd1a942;
-    public static final int CYLINDER_COLOR = 0xffff00ff;
-    public static final int OBJECT_COLOR = 0xff00ffff;
+    public static final int BACKGROUND_COLOR = 0xffe6b73e;
+    public static final int CYLINDER_COLOR = 0xff93d1cf;
+    public static final int PLANE_COLOR = 0xffe6e6e6;
+    public static final int OBJECT_COLOR = 0xfff4f4f4;
 
-    private DirectionalLight mLight;
-    private DiffuseMaterial mMaterial;
+    private ALight mLight;
+    private AMaterial mMaterial;
     private BaseObject3D mObject;
     private BaseObject3D mObject2;
     private Cylinder mCylinder;
+    private Plane mPlane;
     private Cube[][] mBars;
     private float mFling;
 
@@ -38,9 +43,9 @@ public class VoxelRenderer extends RajawaliRenderer {
     public void initScene() {
         this.setBackgroundColor(BACKGROUND_COLOR);
 
-        mLight = new DirectionalLight(1f, 0.2f, -1.0f);
+        mLight = new DirectionalLight(1.0f, -0.5f, -0.5f);
         mLight.setColor(1.0f, 1.0f, 1.0f);
-        mLight.setPower(2);
+        mLight.setPower(1.5f);
 
         mMaterial = new DiffuseMaterial();
         mMaterial.setUseColor(true);
@@ -50,10 +55,16 @@ public class VoxelRenderer extends RajawaliRenderer {
         mObject.addChild(mObject2);
 
         mCylinder = new Cylinder(1.42f, 2.0f / RESOLUTION);
-        mCylinder.setZ((0.99f - RESOLUTION / 2) / RESOLUTION);
+        mCylinder.setZ((1.0f - RESOLUTION / 2) / RESOLUTION);
         mCylinder.setMaterial(mMaterial);
         mCylinder.setColor(CYLINDER_COLOR);
         mObject2.addChild(mCylinder);
+
+        mPlane = new Plane(2.0f, 2.0f, 1, 1);
+        mPlane.setZ((2.01f - RESOLUTION / 2) / RESOLUTION);
+        mPlane.setMaterial(mMaterial);
+        mPlane.setColor(PLANE_COLOR);
+        mObject2.addChild(mPlane);
 
         mBars = new Cube[RESOLUTION][RESOLUTION];
         for (int i = 0; i < RESOLUTION; i++) {
